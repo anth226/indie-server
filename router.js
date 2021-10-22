@@ -14,7 +14,7 @@ const passport = require("passport");
 const ROLE_ADMIN = require("./constants").ROLE_ADMIN;
 const multer = require("multer");
 
-const passportService = require("./config/passport");
+require("./config/passport");
 
 // Middleware to require login/auth
 const requireAuth = passport.authenticate("jwt", { session: false });
@@ -66,6 +66,37 @@ module.exports = function (app) {
     "/reset-password-security",
     AuthenticationController.resetPasswordSecurity
   );
+//Login with google
+  authRoutes.get(
+    "/login/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+  );
+
+  authRoutes.get(
+    "/google/callback",
+    passport.authenticate("google", {
+      failureMessage: "Cannot login to Google, please try again latery!",
+      failureRedirect: process.env.ERROR_CALLBACK_URL,
+      session: false,
+    }),
+    AuthenticationController.authGoogleSuccess
+  );
+//Login with facebook
+authRoutes.get(
+  "/login/facebook",
+  passport.authenticate("facebook",{ scope: ['public_profile','email'] } )
+);
+
+authRoutes.get(
+  "/facebook/callback",
+  passport.authenticate("facebook", {
+    failureMessage: "Cannot login to Google, please try again latery!",
+    failureRedirect: process.env.ERROR_CALLBACK_URL,
+    session: false,
+  }),
+  AuthenticationController.authGoogleSuccess
+);
+
   // Verify route
   authRoutes.post("/verify", AuthenticationController.confirmEmail);
   // Resend verification route
